@@ -1,0 +1,167 @@
+// COLORS ---------------------------------------------------
+	$dark: 			#3B3B3B;
+	$primary: 		#FED16A;
+	$primary-light: #FFCC7A;
+	$secondary: 	#B3D334;
+	$success: 		#1ED1BC;
+	$info: 			$dark;
+	$info-light:    #4A19A5;
+	$warning: 		#FAE17C;
+	$danger: 		#E01D27;
+
+	$light: 		#EDF5F3;
+	$white: 		#FFFFFF;
+
+	$grey-200: 		#B0B0C3;	// grey-light
+	$grey-300:    	#E6EFF3;
+	$grey-500: 		#51516F;	//body
+
+	$light-purple:	#AEA9FF;
+// ---------------------------------------------------
+	$enable-negative-margins: 	true;
+	$enable-shadows: 			true;
+	// $enable-transitions: 		true;
+
+
+// THEME EXTEND ---------------------------------------------------
+	$theme-colors: (
+		"primary":				$primary,
+		"secondary":			$secondary,
+		"success":				$success,
+		"info":					$info,
+		"warning":				$warning,
+		"danger":				$danger,
+		"grey":					$grey-500,
+		"dark":					$dark,
+		"white":				$white,
+
+		"light":				$light,
+		"light-purple":			$light-purple,
+
+	);
+
+// NAVBAR ---------------------------------------------------
+
+	$dropdown-link-hover-bg: 		$light;
+	$dropdown-border-width: 		0;
+	$dropdown-border-radius:		20px;
+	$dropdown-padding-y:			1.3rem;
+	$navbar-light-color:			$primary;
+
+// TEXT COLORS ---------------------------------------------------
+	$body-color: 				$dark;
+	$headings-color: 			$dark;
+	$headings-font-family:		'Ubuntu';
+// A/HREF/LiNKS ---------------------------------------------------
+	$link-color: 				$primary;
+	$link-hover-color:			$dark;
+
+// Paragraph ---------------------------------------------------
+	$paragraph-margin-bottom:   1.7rem;
+
+// FONT SIZE ---------------------------------------------------
+	$font-size-base: 			1rem;
+	$font-size-sm:				$font-size-base * 0.775;
+	$font-size-md:				$font-size-base * 0.85;
+	$h1-font-size: 		 		3.4rem;
+	$h2-font-size: 				3rem;
+	$h3-font-size: 				2rem;
+	$h4-font-size: 				1.12rem;
+	$h5-font-size: 				1rem;
+	// %header-font-size:          3.4rem;
+	// MOBILE FONT SIZE
+	$h1-mobile-font-size:		2rem;
+	$h2-mobile-font-size:		1.62rem;
+	$h3-mobile-font-size:		1.25rem;
+	$h4-mobile-font-size:		0.9rem;
+	$body-mobile-font-size:		0.75rem;
+
+	$font-size-lg: 				$font-size-base * 1.25;
+
+	$headings-margin-bottom: 	1rem;
+	// $headings-margin-bottom: 	0;
+	$headings-font-weight: 		700;
+	$headings-line-height:        1;
+
+	$font-weight-base:			400;
+
+	$line-height-base:			1.6; // orig: 1.5
+	$line-height-lg:			1.75;
+	$line-height-sm:			1;
+
+	// BUTTONS
+	$input-btn-padding-y:				15px;
+	$input-btn-padding-x:				26px;
+	$btn-padding-y:            			$input-btn-padding-y;
+	$btn-padding-x:             		$input-btn-padding-x;
+	$btn-padding-y-sm:          		calc($btn-padding-y/1.4);
+	$btn-padding-x-sm:          		calc($btn-padding-x/1.4);
+	// $btn-font-size-sm:          $font-size-base;
+	$btn-font-weight:           		700;
+	$btn-color:							$white;
+	$btn-border-radius: 				30px;
+	$btn-border-radius-sm:      		$btn-border-radius;
+	$btn-box-shadow:            		0;
+	$navbar-light-toggler-icon-bg:      none;
+
+
+	$nav-link-padding-y: 2rem;
+
+// Badge ---------------------------------------------------
+	$badge-padding-y:  					$btn-padding-y-sm;
+	$badge-padding-x:					$btn-padding-x-sm;
+	$badge-border-radius:				$btn-border-radius;
+
+// Form-control ---------------------------------------------------
+	// $input-bg:					$info;
+	// $input-color:  				$light-purple;
+	$input-focus-bg:            none;
+	$input-focus-border-color:  none;
+	// $input-focus-box-shadow:    none;
+	// $input-placeholder-color:   $light-purple;
+	$input-border-radius:       0.62rem;
+	$input-border-color:		$primary;
+	$input-border-width:        1px;
+	$form-check-input-border:	none;
+	$input-box-shadow:			none;
+
+// Shadow ---------------------------------------------------
+	$box-shadow: 			   rgba(0, 0, 0, 0.1) 0px 10px 50px;
+
+// SPACINGS, EXTEND m-x, p-x ---------------------------------------------------
+	$spacer: 1rem;
+	$spacers: (
+		0: 0,
+		1: ($spacer * .25),
+		2: ($spacer * .5),
+		3: ($spacer),
+		4: ($spacer * 1.5),
+		5: ($spacer * 2),
+		6: ($spacer * 2.5),
+		7: ($spacer * 3),
+		8: ($spacer * 3.5),
+		9: ($spacer * 4),
+		10: ($spacer * 5),
+		11: ($spacer * 5.5),
+		12: ($spacer * 6),
+		13: ($spacer * 6.5),
+		14: ($spacer * 7),
+		15: ($spacer * 7.5),
+		16: ($spacer * 8),
+		17: ($spacer * 8.5)
+	);
+
+	$sizes: map-merge( (
+		10: 10%,
+		15: 15%,
+		20: 20%,
+		25: 25%,
+		30: 30%,
+		35: 35%,
+		40: 40%,
+		45: 45%,
+		50: 50%,
+		75: 75%,
+		100: 100%,
+		auto: auto
+	), () );

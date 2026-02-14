@@ -1,0 +1,17 @@
+@font-face {
+    font-family: 'Ubuntu'; /* Choose a name you’ll use in CSS */
+    src: url('../fonts/Ubuntu-Bold.ttf') format('truetype'); /* Path to your font file */
+    font-weight: bold; /* or bold */
+    font-style: normal;  /* or italic */
+}
+
+@font-face {
+    font-family: 'Inter'; /* Choose a name you’ll use in CSS */
+    src: url('../fonts/Inter-Bold.ttf') format('truetype'); /* Path to your font file */
+    font-weight: bold; /* or bold */
+    font-style: normal;  /* or italic */
+}
+
+body {
+	font-family:'Inter';
+}

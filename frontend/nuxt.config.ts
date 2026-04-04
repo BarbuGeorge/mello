@@ -1,6 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	ssr: true, // activează Server-Side Rendering
+	srcDir: 'app/',
+	serverDir: 'app/server',
 	devtools: { enabled: true },
 	css: ['~/assets/scss/main.scss'],
 	plugins: ['~/plugins/bootstrap.client.ts'],

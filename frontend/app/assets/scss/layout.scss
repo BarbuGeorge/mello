@@ -1,0 +1,9 @@
+.cms-section {
+    @extend .container;
+    .cms-row {
+        @extend .row;
+        .cms-column {
+            @extend .col;
+        }
+    }
+}

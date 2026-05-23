@@ -12,10 +12,14 @@ query {
       __typename
 
       ... on ComponentDefaultSection {
+        className
+        blocks
         columns {
           __typename
+          className
           blocks
         }
+        afterBlocks
       }
 
       ... on ComponentBuilderVueComponent {
@@ -30,13 +34,14 @@ query {
 
 
 const response = await fetchCms(query)
-console.log("RESPONSE =", response)
 const page = response?.data?.pages?.[0]
+
+useHead({ bodyAttrs: { class: page?.slug ?? '' } })
 </script>
 
 
 <template>
-  <template v-if="page">
+  <template v-if="page" class="page">
     <CmsRenderer :content="page.Content" />
   </template>
 </template>

@@ -10,8 +10,12 @@ query {
       __typename
 
       ... on ComponentDefaultSection {
+        className
+        blocks
+        afterBlocks
         columns {
           __typename
+          className
           blocks
         }
       }
@@ -28,6 +32,8 @@ query {
 
 const response = await fetchCms(query)
 const page = response?.data?.pages?.[0]
+
+useHead({ bodyAttrs: { class: page?.slug ?? 'home' } })
 </script>
 
 <template>

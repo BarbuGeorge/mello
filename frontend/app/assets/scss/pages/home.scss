@@ -1,0 +1,30 @@
+.home {
+    .section-hero {
+        @include media-breakpoint-up(lg) {
+            padding: 15rem 0;
+        }
+        @include media-breakpoint-down(lg) {
+            padding: 5rem 0;
+        }
+        @extend .text-center;
+        h1 {
+            font-size: clamp(3rem, 6dvw, 8rem)
+        }
+        h2 {
+            font-size: clamp(2.5rem, 4.5dvw, 6.5rem)
+        }
+        ul {
+            @extend .d-inline-block;
+            @extend .list-unstyled;
+            li {
+                @extend .text-white;
+                @extend .d-none;
+                font-size: clamp(3rem, 5.5dvw, 7.5rem);
+                line-height: 1;
+                &:first-child {
+                    @extend .d-block;
+                }
+            }
+        }
+    }
+}

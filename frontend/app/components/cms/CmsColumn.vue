@@ -5,7 +5,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="cms-column">
+  <div class="cms-column" :class="column.className">
     <CmsBlock
       v-for="(block, i) in column.blocks"
       :key="i"

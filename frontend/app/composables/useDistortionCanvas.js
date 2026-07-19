@@ -12,9 +12,8 @@ precision highp float;
 uniform sampler2D u_tex1;
 uniform sampler2D u_tex2;
 uniform float u_progress;
-uniform float u_width;
-uniform float u_scaleX;
-uniform float u_scaleY;
+uniform float u_time;
+uniform vec2 u_dir;
 uniform vec2 u_res;
 uniform vec2 u_size1;
 uniform vec2 u_size2;
@@ -140,32 +139,37 @@ float cnoise(vec4 P){
   return 2.2 * n_xyzw;
 }
 
-float parabola(float x, float k) {
-  return pow(4.0 * x * (1.0 - x), k);
-}
-
 void main() {
   vec2 uv = v_uv;
-  vec4 color1 = texture2D(u_tex1, coverUV(uv, u_size1));
-  vec4 color2 = texture2D(u_tex2, coverUV(uv, u_size2));
 
-  float realnoise = 0.5 * (cnoise(vec4(uv.x * u_scaleX, uv.y * u_scaleY, 0.0, 0.0)) + 1.0);
+  float noise = 0.5 * (cnoise(vec4(uv.x * 3.0 + u_time * 0.4, uv.y * 3.0 + u_time * 0.4, 0.0, 0.0)) + 1.0);
 
-  float dt = parabola(u_progress, 1.0);
-  float w = u_width * dt;
-  float maskvalue = smoothstep(1.0 - w, 1.0, uv.x + mix(-w / 2.0, 1.0 - w / 2.0, u_progress));
-  float mask = maskvalue + maskvalue * realnoise;
-  float final = smoothstep(1.0, 1.01, mask);
+  float dirExtent = 0.5 * (abs(u_dir.x) + abs(u_dir.y));
+  float sweep = (dot(uv - 0.5, u_dir) + dirExtent) / (2.0 * dirExtent);
+  float prog = u_progress * 0.8 - 0.05 + noise * 0.06;
+  float intpl = pow(abs(smoothstep(0.0, 1.0, (prog * 2.0 - sweep + 0.5))), 10.0);
 
-  gl_FragColor = mix(color1, color2, final);
+  vec2 uv1 = coverUV(uv, u_size1);
+  vec2 uv2 = coverUV(uv, u_size2);
+
+  vec4 t1 = texture2D(u_tex1, (uv1 - 0.5) * (1.0 - intpl) + 0.5);
+  vec4 t2 = texture2D(u_tex2, (uv2 - 0.5) * intpl + 0.5);
+
+  gl_FragColor = mix(t1, t2, intpl);
 }
 `
 
-function easeInOut(t) {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+function easeOut(t) {
+  return 1 - (1 - t) * (1 - t)
 }
 
 const TRANS_MS = 1500
+
+const SQRT1_2 = Math.SQRT1_2
+const DIRECTIONS = [
+  [1, 0], [-1, 0], [0, 1], [0, -1],
+  [SQRT1_2, SQRT1_2], [-SQRT1_2, SQRT1_2], [SQRT1_2, -SQRT1_2], [-SQRT1_2, -SQRT1_2],
+]
 
 export function useDistortionCanvas(canvasRef) {
   let gl = null, program = null, locs = {}
@@ -173,6 +177,7 @@ export function useDistortionCanvas(canvasRef) {
   let fromIdx = 0, toIdx = 0
   let progress = 1, transStart = null
   let rafId = null
+  let dirX = 1, dirY = 0
 
   function compile(type, src) {
     const s = gl.createShader(type)
@@ -203,9 +208,8 @@ export function useDistortionCanvas(canvasRef) {
       tex1:     gl.getUniformLocation(program, 'u_tex1'),
       tex2:     gl.getUniformLocation(program, 'u_tex2'),
       progress: gl.getUniformLocation(program, 'u_progress'),
-      width:    gl.getUniformLocation(program, 'u_width'),
-      scaleX:   gl.getUniformLocation(program, 'u_scaleX'),
-      scaleY:   gl.getUniformLocation(program, 'u_scaleY'),
+      time:     gl.getUniformLocation(program, 'u_time'),
+      dir:      gl.getUniformLocation(program, 'u_dir'),
       res:      gl.getUniformLocation(program, 'u_res'),
       size1:    gl.getUniformLocation(program, 'u_size1'),
       size2:    gl.getUniformLocation(program, 'u_size2'),
@@ -213,9 +217,6 @@ export function useDistortionCanvas(canvasRef) {
 
     gl.uniform1i(locs.tex1, 0)
     gl.uniform1i(locs.tex2, 1)
-    gl.uniform1f(locs.width, 5.0)
-    gl.uniform1f(locs.scaleX, 60.0)
-    gl.uniform1f(locs.scaleY, 60.0)
 
     return true
   }
@@ -246,7 +247,7 @@ export function useDistortionCanvas(canvasRef) {
 
     if (transStart !== null) {
       const raw = Math.min((t - transStart) / TRANS_MS, 1)
-      progress = easeInOut(raw)
+      progress = easeOut(raw)
       if (raw >= 1) { progress = 1; transStart = null }
     }
 
@@ -259,6 +260,8 @@ export function useDistortionCanvas(canvasRef) {
     gl.bindTexture(gl.TEXTURE_2D, imageTex[toIdx])
 
     gl.uniform1f(locs.progress, progress)
+    gl.uniform1f(locs.time, t / 1000)
+    gl.uniform2f(locs.dir, dirX, dirY)
     gl.uniform2f(locs.res, canvas.width, canvas.height)
     gl.uniform2f(locs.size1, imageSizes[fromIdx]?.w ?? 1, imageSizes[fromIdx]?.h ?? 1)
     gl.uniform2f(locs.size2, imageSizes[toIdx]?.w ?? 1, imageSizes[toIdx]?.h ?? 1)
@@ -282,6 +285,7 @@ export function useDistortionCanvas(canvasRef) {
     fromIdx = toIdx
     toIdx = newIdx
     progress = 0
+    ;[dirX, dirY] = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)]
     transStart = performance.now()
     if (rafId) cancelAnimationFrame(rafId)
     rafId = requestAnimationFrame(draw)

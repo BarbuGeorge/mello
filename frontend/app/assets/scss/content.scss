@@ -1,8 +1,13 @@
 .bg-dark {
     @extend .text-white;
 }
-.section-title {
+.text-grow {
     transform-origin: center;
-    animation: unGrow linear both;
-    animation-timeline: view();
+}
+
+@supports (animation-timeline: view()) {
+    .text-grow {
+        animation: unGrow linear both;
+        animation-timeline: view();
+    }
 }

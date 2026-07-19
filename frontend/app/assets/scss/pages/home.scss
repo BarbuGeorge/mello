@@ -1,5 +1,7 @@
 .home {
     .section-hero {
+        height: 100dvh;
+        position: relative;
         @include media-breakpoint-up(lg) {
             padding: 15rem 0;
         }
@@ -7,22 +9,142 @@
             padding: 5rem 0;
         }
         @extend .text-center;
+        h1, h2, ul {
+            position: relative;
+            z-index: 2;
+        }
+        h1, h2 {
+            .word-wrap {
+                display: inline-block;
+                overflow-y: clip;
+                vertical-align: bottom;
+                padding-bottom: 0.18em;
+                margin-bottom: -0.18em;
+            }
+            .word {
+                display: block;
+                animation: wordSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+                will-change: transform;
+            }
+        }
         h1 {
-            font-size: clamp(3rem, 6dvw, 8rem)
+            font-size: clamp(3rem, 6dvw, 8rem);
+            .word { animation-delay: calc(var(--i) * 0.12s + 0.35s); }
         }
         h2 {
-            font-size: clamp(2.5rem, 4.5dvw, 6.5rem)
+            font-size: clamp(2.5rem, 4.5dvw, 6.5rem);
+            .word { animation-delay: calc(var(--i) * 0.12s + 0.65s); }
         }
         ul {
-            @extend .d-inline-block;
+            margin-bottom: 0 !important;
             @extend .list-unstyled;
+            margin-top: -1.25rem;
+            position: relative;
+
+            width: 100%;
+            height: 1.7em;
+
+            overflow: hidden;
+            font-size: clamp(3rem, 5.5dvw, 7.5rem);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+            animation: ulReveal 0.5s ease 1s both;
             li {
                 @extend .text-white;
-                @extend .d-none;
-                font-size: clamp(3rem, 5.5dvw, 7.5rem);
+
+                position: absolute;
+                top: 0.35em;
+
+                width: 100%;
+                text-align: center;
                 line-height: 1;
-                &:first-child {
-                    @extend .d-block;
+                animation: slideItem 12s infinite;
+
+                &:nth-child(1) { animation-delay: 0s; }
+                &:nth-child(2) { animation-delay: -8s; }
+                &:nth-child(3) { animation-delay: -4s; }
+            }
+        }
+
+        .hero-eyes {
+            user-select: none;
+
+            position: fixed;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3rem;
+            z-index: 1;
+            animation: heroEyesIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+            .eye {
+                cursor: grab;
+                background: white;
+                width: 130px;
+                height: 130px;
+                border-radius: 50%;
+                overflow: hidden;
+                position: relative;
+
+                &::before,
+                &::after {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    height: 56%;
+                    background: $dark;
+                    z-index: 2;
+                }
+                &::before {
+                    top: 0;
+                    transform-origin: top center;
+                    animation: eyeLidTopOpen 0.6s cubic-bezier(0.4, 0, 0.2, 1) 1.2s both;
+                }
+                &::after {
+                    bottom: 0;
+                    transform-origin: bottom center;
+                    animation: eyeLidBottomOpen 0.65s cubic-bezier(0.4, 0, 0.2, 1) 1.2s both;
+                }
+
+                &.is-dragging {
+                    cursor: grabbing;
+                    will-change: transform;
+                }
+
+// After open animation completes (is-open added via JS),
+                // hover triggers close animation
+                &.is-open {
+                    &::before {
+                        animation: none;
+                        transform: scaleY(0);
+                    }
+                    &::after {
+                        animation: none;
+                        transform: scaleY(0);
+                    }
+
+                    &.is-closing {
+                        &::before { animation: eyeLidTopClose 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+                        &::after  { animation: eyeLidBottomClose 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+                    }
+
+                    &.is-opening {
+                        &::before { animation: eyeLidTopOpen 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+                        &::after  { animation: eyeLidBottomOpen 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+                    }
+                }
+
+                .pupil {
+                    background: black;
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 50%;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    margin-top: -18px;
+                    margin-left: -18px;
+                    will-change: transform;
                 }
             }
         }

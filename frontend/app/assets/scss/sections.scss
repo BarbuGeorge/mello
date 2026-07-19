@@ -1,0 +1,15 @@
+@include media-breakpoint-up(lg) {
+    section {
+        padding: 9.8rem 0
+    }
+}
+@include media-breakpoint-down(lg) {
+    section {
+        padding: 4.4rem 0
+    }
+}
+
+section:not(.section-hero) {
+    position: relative;
+    z-index: 50;
+}

@@ -1,0 +1,8 @@
+.bg-dark {
+    @extend .text-white;
+}
+.section-title {
+    transform-origin: center;
+    animation: unGrow linear both;
+    animation-timeline: view();
+}

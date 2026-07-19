@@ -1,11 +1,22 @@
 <script setup>
-const props = defineProps({ block: Object })
+const props = defineProps({
+  block: Object,
+  animateWords: Boolean,
+})
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function safeHref(url) {
+  return /^(https?:\/\/|\/|#)/.test(url) ? escapeAttr(url) : '#'
+}
 
 function renderInline(children) {
   if (!children) return ''
   return children.map(node => {
     if (node.type === 'link') {
-      return `<a href="${node.url}">${renderInline(node.children)}</a>`
+      return `<a href="${safeHref(node.url)}">${renderInline(node.children)}</a>`
     }
     let text = (node.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     if (node.bold) text = `<strong>${text}</strong>`
@@ -16,16 +27,40 @@ function renderInline(children) {
     return text
   }).join('')
 }
+
+function renderInlineAnimated(children) {
+  if (!children) return ''
+  let wi = 0
+  return children.map(node => {
+    if (node.type === 'link') {
+      return `<a href="${safeHref(node.url)}">${renderInline(node.children)}</a>`
+    }
+    const parts = (node.text || '').split(/(\s+)/)
+    return parts.map(part => {
+      if (/^\s+$/.test(part) || part === '') return part
+      let content = part.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      if (node.bold) content = `<strong>${content}</strong>`
+      if (node.italic) content = `<em>${content}</em>`
+      if (node.underline) content = `<u>${content}</u>`
+      if (node.strikethrough) content = `<s>${content}</s>`
+      if (node.code) content = `<code>${content}</code>`
+      return `<span class="word-wrap"><span class="word" style="--i:${wi++};transform:translateY(110%)">${content}</span></span>`
+    }).join('')
+  }).join('')
+}
+
+const render = (children) =>
+  props.animateWords ? renderInlineAnimated(children) : renderInline(children)
 </script>
 
 <template>
-  <h1 v-if="block.type === 'heading' && block.level === 1" v-html="renderInline(block.children)" />
-  <h2 v-else-if="block.type === 'heading' && block.level === 2" v-html="renderInline(block.children)" />
-  <h3 v-else-if="block.type === 'heading' && block.level === 3" v-html="renderInline(block.children)" />
-  <h4 v-else-if="block.type === 'heading' && block.level === 4" v-html="renderInline(block.children)" />
-  <h5 v-else-if="block.type === 'heading' && block.level === 5" v-html="renderInline(block.children)" />
-  <h6 v-else-if="block.type === 'heading' && block.level === 6" v-html="renderInline(block.children)" />
-  <p v-else-if="block.type === 'paragraph'" v-html="renderInline(block.children)" />
+  <h1 v-if="block.type === 'heading' && block.level === 1" v-html="render(block.children)" />
+  <h2 v-else-if="block.type === 'heading' && block.level === 2" v-html="render(block.children)" />
+  <h3 v-else-if="block.type === 'heading' && block.level === 3" v-html="render(block.children)" />
+  <h4 v-else-if="block.type === 'heading' && block.level === 4" v-html="render(block.children)" />
+  <h5 v-else-if="block.type === 'heading' && block.level === 5" v-html="render(block.children)" />
+  <h6 v-else-if="block.type === 'heading' && block.level === 6" v-html="render(block.children)" />
+  <p v-else-if="block.type === 'paragraph'" v-html="render(block.children)" />
   <ul v-else-if="block.type === 'list' && block.format === 'unordered'">
     <li v-for="(item, i) in block.children" :key="i" v-html="renderInline(item.children)" />
   </ul>

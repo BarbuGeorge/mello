@@ -1,4 +1,5 @@
 <template>
+  <AppCursor />
   <AppHeader />
 
   <main>

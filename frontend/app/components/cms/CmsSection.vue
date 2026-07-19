@@ -10,6 +10,7 @@ defineProps({
       v-for="(block, i) in section.blocks"
       :key="`b-${i}`"
       :block="block"
+      :animateWords="section.className?.includes('section-hero')"
     />
     <div v-if="section.columns?.length" class="cms-row">
       <CmsColumn
@@ -23,6 +24,10 @@ defineProps({
       :key="`ab-${i}`"
       :block="block"
     />
+    <div v-if="section.className?.includes('section-hero')" class="hero-eyes">
+      <div class="eye eye1"><div class="pupil"></div></div>
+      <div class="eye eye2"><div class="pupil"></div></div>
+    </div>
   </section>
 </template>
 

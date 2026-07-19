@@ -19,11 +19,9 @@ export default defineNuxtConfig({
 		{ path: '~/components', pathPrefix: false }
 	],
 	runtimeConfig: {
+		strapiApiToken: process.env.STRAPI_API_TOKEN || '',
 		public: {
-			// URL-ul Strapi, fallback la localhost pentru development
 			strapiUrl: process.env.STRAPI_URL || 'http://localhost:1337',
-			// Token API Strapi, gol dacă nu e setat
-			strapiApiToken: process.env.STRAPI_API_TOKEN || ''
 		}
 	}
 })

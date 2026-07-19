@@ -1,0 +1,23 @@
+html, body, *, *::before, *::after {
+  cursor: none !important;
+}
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  background: #FFFCFB;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  mix-blend-mode: exclusion;
+  transition: width 0.22s ease, height 0.22s ease;
+  will-change: transform;
+
+  &.is-hover {
+    width: 56px;
+    height: 56px;
+  }
+}

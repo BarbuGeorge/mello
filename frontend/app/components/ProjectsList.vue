@@ -1,4 +1,7 @@
 <script setup>
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 const props = defineProps({
   limit: { type: Number, default: null },
 })
@@ -29,68 +32,89 @@ function imgUrl(url) {
   return url.startsWith('http') ? url : strapiUrl + url
 }
 
+function projectHref(project) {
+  if (!project.URL) return undefined
+  return project.URL.startsWith('http') ? project.URL : 'https://' + project.URL
+}
+
 const imageUrls = projects.map(p => p.FeaturedImage ? imgUrl(p.FeaturedImage.url) : null)
 
-const hoveredIndex = ref(0)
-const canvasRef = ref(null)
-
-let distortion = null
+const wrapperRef = ref(null)
+const trackRef = ref(null)
+const cardRefs = ref([])
 let textGrow = null
+let scrollTrigger = null
+
+onUnmounted(() => {
+  textGrow?.stop()
+  scrollTrigger?.kill()
+  scrollTrigger = null
+})
+
+function updateActiveCard(wrapper) {
+  const center = wrapper.getBoundingClientRect().left + wrapper.clientWidth / 2
+  let closest = null
+  let closestDist = Infinity
+  for (const el of cardRefs.value) {
+    if (!el) continue
+    const r = el.getBoundingClientRect()
+    const dist = Math.abs(r.left + r.width / 2 - center)
+    if (dist < closestDist) {
+      closestDist = dist
+      closest = el
+    }
+  }
+  for (const el of cardRefs.value) {
+    if (el) el.classList.toggle('is-active', el === closest)
+  }
+}
 
 onMounted(async () => {
-  const { useDistortionCanvas } = await import('~/composables/useDistortionCanvas')
-  distortion = useDistortionCanvas(canvasRef)
-  await distortion.setup(imageUrls)
-
-  const ro = new ResizeObserver(() => distortion?.resize())
-  ro.observe(canvasRef.value)
-
   const { useTextGrow } = await import('~/composables/useTextGrow')
   textGrow = useTextGrow()
   textGrow.start()
 
-  onUnmounted(() => {
-    ro.disconnect()
-    distortion?.dispose()
-    textGrow?.stop()
-    clearTimeout(hoverTimer)
+  gsap.registerPlugin(ScrollTrigger)
+
+  const track = trackRef.value
+  const wrapper = wrapperRef.value
+
+  const tween = gsap.to(track, {
+    x: () => -(track.scrollWidth - wrapper.clientWidth),
+    ease: 'none',
+    scrollTrigger: {
+      trigger: wrapper,
+      start: 'top top',
+      end: () => '+=' + (track.scrollWidth - wrapper.clientWidth),
+      scrub: true,
+      pin: true,
+      invalidateOnRefresh: true,
+      onUpdate: () => updateActiveCard(wrapper),
+    },
   })
+  scrollTrigger = tween.scrollTrigger
+  updateActiveCard(wrapper)
+  ScrollTrigger.refresh()
 })
-
-const HOVER_DELAY = 150
-let hoverTimer = null
-
-function onHover(i) {
-  clearTimeout(hoverTimer)
-  hoverTimer = setTimeout(() => {
-    if (i === hoveredIndex.value) return
-    distortion?.transitionTo(i)
-    hoveredIndex.value = i
-  }, HOVER_DELAY)
-}
 </script>
 
 <template>
-  <section class="projects-list" id="projects">
-    <div class="container">
-      <div class="text-center mb-10">
-        <h2 class="section-title text-white text-grow">Fresh Juice. Freshly Served.</h2>
-      </div>
-      <div class="row">
-        <div class="projects-image-col col-lg-6">
-          <div class="projects-image-sticky">
-            <canvas ref="canvasRef" />
-          </div>
-        </div>
+  <section class="projects-slider" id="projects">
+    <div class="projects-slider__intro">
+      <h2 class="section-title text-white text-grow">Fresh Juice. Freshly Served.</h2>
+    </div>
 
-        <div class="projects-names-col col-lg-6">
-          <a v-for="(project, i) in projects" :key="i"
-            :href="project.URL ? (project.URL.startsWith('http') ? project.URL : 'https://' + project.URL) : undefined"
-            :target="project.URL ? '_blank' : undefined" :rel="project.URL ? 'noopener noreferrer' : undefined"
-            class="project-name h2" :class="{ active: hoveredIndex === i }" @mouseenter="onHover(i)">
-            {{ project.Name }}
-            <span class="link"></span>
-          </a>
+    <div class="horizontal-wrapper" ref="wrapperRef">
+      <div class="horizontal-track" ref="trackRef">
+        <div v-for="(project, i) in projects" :key="i" class="slide-card" :ref="el => (cardRefs[i] = el)">
+          <img v-if="imageUrls[i]" :src="imageUrls[i]" :alt="project.FeaturedImage?.alternativeText || project.Name"
+            class="slide-card__img" loading="lazy" />
+          <div class="slide-card__overlay">
+            <span class="slide-card__index">{{ String(i + 1).padStart(2, '0') }}</span>
+            <h3 class="slide-card__name">{{ project.Name }}</h3>
+            <a v-if="project.URL" :href="projectHref(project)" target="_blank" rel="noopener noreferrer"
+              class="slide-card__link">View project</a>
+          </div>
         </div>
       </div>
     </div>

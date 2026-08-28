@@ -2,6 +2,7 @@
 const props = defineProps({
   block: Object,
   animateWords: Boolean,
+  titleClassName: String,
 })
 
 function escapeAttr(s) {
@@ -54,12 +55,12 @@ const render = (children) =>
 </script>
 
 <template>
-  <h1 v-if="block.type === 'heading' && block.level === 1" v-html="render(block.children)" />
-  <h2 v-else-if="block.type === 'heading' && block.level === 2" v-html="render(block.children)" />
-  <h3 v-else-if="block.type === 'heading' && block.level === 3" v-html="render(block.children)" />
-  <h4 v-else-if="block.type === 'heading' && block.level === 4" v-html="render(block.children)" />
-  <h5 v-else-if="block.type === 'heading' && block.level === 5" v-html="render(block.children)" />
-  <h6 v-else-if="block.type === 'heading' && block.level === 6" v-html="render(block.children)" />
+  <h1 v-if="block.type === 'heading' && block.level === 1" :class="titleClassName" v-html="render(block.children)" />
+  <h2 v-else-if="block.type === 'heading' && block.level === 2" :class="titleClassName" v-html="render(block.children)" />
+  <h3 v-else-if="block.type === 'heading' && block.level === 3" :class="titleClassName" v-html="render(block.children)" />
+  <h4 v-else-if="block.type === 'heading' && block.level === 4" :class="titleClassName" v-html="render(block.children)" />
+  <h5 v-else-if="block.type === 'heading' && block.level === 5" :class="titleClassName" v-html="render(block.children)" />
+  <h6 v-else-if="block.type === 'heading' && block.level === 6" :class="titleClassName" v-html="render(block.children)" />
   <p v-else-if="block.type === 'paragraph'" v-html="render(block.children)" />
   <ul v-else-if="block.type === 'list' && block.format === 'unordered'">
     <li v-for="(item, i) in block.children" :key="i" v-html="renderInline(item.children)" />

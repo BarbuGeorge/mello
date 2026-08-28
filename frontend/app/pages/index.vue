@@ -18,6 +18,10 @@ onMounted(() => {
   const current = { x: 0, y: 0 }
   let raf = null
 
+  const eyeTimers = new WeakMap()
+  const heroEyes  = hero.querySelector('.hero-eyes')
+  let heroVisible = true
+
   const tick = () => {
     current.x += (mouse.x - current.x) * 0.06
     current.y += (mouse.y - current.y) * 0.06
@@ -34,11 +38,17 @@ onMounted(() => {
       const travel = Math.min(22, dist * 0.08)
       p.style.transform = `translate(${(dx / dist) * travel}px, ${(dy / dist) * travel}px)`
     })
+
+    // hero-eyes is fixed to the viewport so it must be hidden once the hero scrolls out of view
+    const heroRect = hero.getBoundingClientRect()
+    const isVisible = heroRect.bottom > 0 && heroRect.top < window.innerHeight
+    if (isVisible !== heroVisible) {
+      heroVisible = isVisible
+      heroEyes.classList.toggle('is-out-of-view', !isVisible)
+    }
+
     raf = requestAnimationFrame(tick)
   }
-
-  const eyeTimers = new WeakMap()
-  const heroEyes  = hero.querySelector('.hero-eyes')
 
   const onMouse = (e) => {
     mouse.x = e.clientX / window.innerWidth - 0.5
@@ -187,6 +197,7 @@ query {
 
       ... on ComponentDefaultSection {
         className
+        titleEffect
         blocks
         afterBlocks
         columns {

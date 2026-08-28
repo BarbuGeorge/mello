@@ -76,6 +76,10 @@
             gap: 3rem;
             z-index: 1;
             animation: heroEyesIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+
+            &.is-out-of-view {
+                display: none;
+            }
             .eye {
                 cursor: grab;
                 background: white;
@@ -146,6 +150,102 @@
                     margin-left: -18px;
                     will-change: transform;
                 }
+            }
+        }
+    }
+    .section-what-we-do {
+        > h2 {
+            @extend .mb-6;
+            text-align: center;
+        }
+        .cms-row {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .card {
+            position: sticky;
+            top: 3rem;
+            box-shadow: 0 1rem 3rem rgba($dark, 0.15);
+            min-height: 60svh;
+            margin-bottom: 30svh;
+            &:nth-child(2) {
+                transform: translateY(6rem);
+            }
+            &:nth-child(3) {
+                transform: translateY(12rem);
+            }
+        }
+    }
+    .section-made-here {
+        @extend .bg-white;
+        @extend .m-0;
+        @extend .mw-100;
+        padding-right: 4rem;
+        padding-left: 4rem;
+        overflow: clip;
+        > h2 {
+            @extend .mb-6;
+            text-align: center;
+        }
+        .cms-row {
+            gap: 2rem;
+            .card {
+                box-shadow: 0 1rem 3rem rgba($dark, 0.15);
+            }
+        }
+    }
+    .section-steps {
+        @extend .bg-dark;
+        @extend .m-0;
+        @extend .mw-100;
+        padding-right: 4rem;
+        padding-left: 7rem;
+        > h2 {
+            @extend .mb-6;
+            color: $white;
+            text-align: center;
+        }
+        .cms-row {
+            display: flex;
+            flex-direction: column;
+        }
+        .cms-column {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            column-gap: 2rem;
+            min-height: 100svh;
+
+            h3 {
+                grid-column: 1;
+                grid-row: 1 / -1;
+                align-self: start;
+                position: sticky;
+                top: 45%;
+
+                width: 3.5rem;
+                height: 3.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                color: $grey-200;
+                font-size: $h4-font-size;
+                transition: color 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease;
+            }
+            h4 {
+                grid-column: 2;
+                color: $white;
+            }
+            p {
+                grid-column: 2;
+                color: $grey-200;
+            }
+
+            &.is-active h3 {
+                background: $primary;
+                color: $dark;
+                border-radius: 1rem;
             }
         }
     }

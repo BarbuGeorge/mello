@@ -112,7 +112,12 @@
 	$badge-padding-y:  					$btn-padding-y-sm;
 	$badge-padding-x:					$btn-padding-x-sm;
 	$badge-border-radius:				$btn-border-radius;
-
+// Card ----------------------------------------------------
+	$card-bg:							$white;
+	$card-border-width:                 0;
+	$card-border-radius:                15px;
+	$card-spacer-y:                     2rem;
+	$card-spacer-x:                     2rem;
 // Form-control ---------------------------------------------------
 	// $input-bg:					$info;
 	// $input-color:  				$light-purple;

@@ -1,0 +1,162 @@
+// Editorial layer — white canvas, near-black ink, yellow as the one loud accent.
+// Huge type, directional arrows, numbered sections, generous whitespace, thin
+// rules between sections. Inspired by clean B2B agency editorial (wdnn.com).
+
+body {
+    background: #0e0e0e;
+    color: #eaeaea;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+::selection { background: $primary; color: #141414; }
+
+:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 3px;
+}
+
+// scroll is locked while the intro plays
+html.is-loading { overflow: hidden; }
+
+// ============ INTRO PRELOADER ============
+.preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+
+    &__cols {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        span {
+            flex: 1;
+            background: $dark;
+            // slight overlap kills sub-pixel seams between columns
+            margin-right: -1px;
+        }
+    }
+
+    &__content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+
+    &__brand {
+        font-family: 'Ubuntu', sans-serif;
+        font-weight: 700;
+        font-size: clamp(2.4rem, 7vw, 5rem);
+        letter-spacing: -0.03em;
+        line-height: 1;
+        em { color: $primary; font-style: normal; font-size: 0.5em; vertical-align: super; }
+    }
+
+    &__count {
+        position: absolute;
+        right: clamp(1.4rem, 4vw, 3rem);
+        bottom: clamp(1.4rem, 4vw, 3rem);
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+        color: rgba(#fff, 0.7);
+        i { color: $primary; font-style: normal; margin-left: 2px; }
+    }
+}
+
+// Content column lives to the right of the fixed rail
+main {
+    height: auto;
+    @include media-breakpoint-up(lg) {
+        margin-left: var(--rail-w);
+    }
+    @include media-breakpoint-down(lg) {
+        margin-top: 62px; // clears the mobile top bar
+    }
+}
+.site-footer {
+    @include media-breakpoint-up(lg) { margin-left: var(--rail-w); }
+}
+
+// Editorial gutters: fill the offset column, wide breathing room
+.cms-section {
+    max-width: none;
+    @include media-breakpoint-up(lg) {
+        padding-left: 5vw;
+        padding-right: 5vw;
+    }
+    @include media-breakpoint-down(lg) {
+        padding-left: 1.4rem;
+        padding-right: 1.4rem;
+    }
+}
+
+// Section rhythm: a thin hairline rule opens each section on the light canvas.
+// Dark sections (steps, projects) draw their own edge, so they opt out.
+main > section:not(.section-hero):not(.bg-dark):not(.projects-slider):not(.section-steps) {
+    border-top: 1px solid rgba(#fff, 0.14);
+}
+
+// Display headings: tight, confident, near-black
+h1, h2, h3 {
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+}
+
+// Uppercase numbered/section label
+.ed-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #eaeaea;
+}
+
+// Yellow accent button, dark ink text, pill
+.btn-primary,
+.btn.btn-primary {
+    background: $primary;
+    border: 0;
+    color: #141414 !important;
+    font-weight: 700;
+    border-radius: 999px;
+    box-shadow: none;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
+
+    &:hover, &:focus {
+        background: darken($primary, 6%);
+        color: #141414 !important;
+        transform: translateY(-2px);
+    }
+}
+
+// Ghost / text link with directional arrow
+.ed-arrow-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #fafafa;
+    text-decoration: none;
+    border-bottom: 2px solid #fafafa;
+    padding-bottom: 2px;
+    transition: gap 0.25s ease, border-color 0.25s ease;
+
+    &:hover {
+        gap: 0.9rem;
+        border-color: $primary;
+        color: #fff;
+    }
+}
+
+// A word set in the accent (used for the rotating hero keyword)
+.ed-accent { color: #141414; background: $primary; }

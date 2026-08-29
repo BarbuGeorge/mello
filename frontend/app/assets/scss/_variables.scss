@@ -1,5 +1,5 @@
 // COLORS ---------------------------------------------------
-	$dark: 			#3B3B3B;
+	$dark: 			#111111;
 	$primary: 		#FED16A;
 	$primary-light: #FFCC7A;
 	$secondary: 	#B3D334;
@@ -46,15 +46,15 @@
 	$dropdown-border-width: 		0;
 	$dropdown-border-radius:		20px;
 	$dropdown-padding-y:			1.3rem;
-	$navbar-light-color:			$primary;
-	$body-bg:						$primary;
+	$navbar-light-color:			$white;
+	$body-bg:						#0E0E0E;
 // TEXT COLORS ---------------------------------------------------
-	$body-color: 				$dark;
-	$headings-color: 			$dark;
+	$body-color: 				#EAEAEA;
+	$headings-color: 			#FAFAFA;
 	$headings-font-family:		'Ubuntu';
 // A/HREF/LiNKS ---------------------------------------------------
-	$link-color: 				$primary;
-	$link-hover-color:			$dark;
+	$link-color: 				#EAEAEA;
+	$link-hover-color:			#FFFFFF;
 
 // Paragraph ---------------------------------------------------
 	$paragraph-margin-bottom:   1.7rem;
@@ -115,7 +115,7 @@
 // Card ----------------------------------------------------
 	$card-bg:							$white;
 	$card-border-width:                 0;
-	$card-border-radius:                15px;
+	$card-border-radius:                6px;
 	$card-spacer-y:                     2rem;
 	$card-spacer-x:                     2rem;
 // Form-control ---------------------------------------------------

@@ -39,7 +39,12 @@ function renderInlineAnimated(children) {
     const parts = (node.text || '').split(/(\s+)/)
     return parts.map(part => {
       if (/^\s+$/.test(part) || part === '') return part
-      let content = part.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      // each character gets its own span so the kinetic hero effect can push
+      // individual letters around the cursor
+      let content = part.split('').map(ch => {
+        const safe = ch.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        return `<span class="char">${safe}</span>`
+      }).join('')
       if (node.bold) content = `<strong>${content}</strong>`
       if (node.italic) content = `<em>${content}</em>`
       if (node.underline) content = `<u>${content}</u>`

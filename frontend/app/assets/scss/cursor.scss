@@ -1,5 +1,13 @@
-html, body, *, *::before, *::after {
-  cursor: none !important;
+// only where there's a mouse to follow; AppCursor never starts on a touch
+// screen, so there the dot would just sit stuck in the top-left corner
+@media (hover: hover) and (pointer: fine) {
+  html, body, *, *::before, *::after {
+    cursor: none !important;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor { display: none; }
 }
 
 .cursor {
@@ -8,16 +16,23 @@ html, body, *, *::before, *::after {
   left: 0;
   width: 26px;
   height: 26px;
-  background: #FFFCFB;
-  border-radius: 50%;
   pointer-events: none;
   z-index: 99999;
   mix-blend-mode: exclusion;
-  transition: width 0.22s ease, height 0.22s ease;
   will-change: transform;
 
-  &.is-hover {
-    width: 56px;
-    height: 56px;
+  // the visible dot lives on ::before so the hover grow can use scale
+  // (compositor-only) without fighting the inline translate JS puts on .cursor
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #FFFCFB;
+    border-radius: 50%;
+    transition: scale 0.22s ease;
+  }
+
+  &.is-hover::before {
+    scale: 2.154; // 56px / 26px
   }
 }

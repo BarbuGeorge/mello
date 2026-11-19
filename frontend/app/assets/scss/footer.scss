@@ -1,0 +1,597 @@
+// Contact section: the yellow page colour carries through, a white card holds
+// the multi-step inquiry form (ContactForm.vue), and a dark rounded strip
+// with the brand / mail / socials sits underneath it.
+.site-footer {
+    // no top padding: the card is pulled up over the dark section above it,
+    // as in the design, and brings its own clearance
+    padding: 0 1.25rem clamp(2rem, 4vw, 3rem);
+    // every <section> is positioned at z-index 50 (sections.scss), so without
+    // this the section above would paint over the card that overlaps it
+    position: relative;
+    z-index: 51;
+
+    // Widths here are taken off the design, where they read as a share of the
+    // viewport: the card is ~71% of it, the strip ~86%. The caps are what
+    // those come to at the width the design was drawn at.
+    &__inner {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    &__form {
+        display: block;
+        margin-bottom: clamp(2.5rem, 6vw, 5.5rem);
+    }
+
+    &__meta {
+        margin: 1.5rem 0 0;
+        text-align: center;
+        font-size: 0.85rem;
+        opacity: 0.65;
+    }
+}
+
+// The card's top edge just clears the boundary with the dark section above —
+// a sliver, not half the card.
+.inquiry-block {
+    max-width: 1000px;
+    // not `margin: 0 auto` — that would reset the gap .site-footer__form sets
+    // between the card and the strip below it
+    margin-inline: auto;
+    margin-top: clamp(-2.5rem, -2.4vw, -1.5rem);
+}
+
+// ---------------------------------------------------------------- the card
+.inquiry {
+    position: relative;
+    background: $white;
+    border-radius: clamp(1.25rem, 2.5vw, 2rem);
+    // ~3% of the card's width, as in the design — the fields nearly reach
+    // the card's edges
+    padding: clamp(1.5rem, 3vw, 2rem);
+    box-shadow: 0 1.5rem 3.5rem rgba($dark, 0.12);
+    // clips the outgoing step while the card's height tweens between steps
+    overflow: hidden;
+
+    // The card sizes to the step it holds. A floor tall enough to stop every
+    // jump left a hole in the short steps and still didn't cover the tall
+    // ones; instead ContactForm tweens the height across a step change, so
+    // the card never jumps and never carries dead space. This floor only
+    // keeps the shortest step close to the design's wide proportion.
+    @include media-breakpoint-up(md) {
+        min-height: 34rem;
+    }
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    // only ever set inline, by ContactForm, for the length of a step change
+    transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+    // the form owns the card's full height, so the header can sit against the
+    // top edge while the step and the buttons sit against the bottom one — the
+    // air between them is whatever the shorter steps leave over
+    &__form {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    // ------------------------------------------------------------- header
+    &__head {
+        text-align: center;
+        // the design leaves a lot of air between the header and the fields
+        padding-top: clamp(0.5rem, 2vw, 1rem);
+        // a floor for the gap, for when a tall step eats the leftover space
+        margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+    }
+
+    &__heading {
+        margin: 0 0 0.75rem;
+        // ~6% of the card's width in the design, which is far bigger than a
+        // card heading would otherwise be
+        font-size: clamp(2.25rem, 4.3vw, 3.75rem);
+        line-height: 1.05;
+        &:focus { outline: none; }
+    }
+
+    &__lead {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    &__step {
+        border: 0;
+        padding: 0;
+        // auto top margin, so the step and the actions below it are pushed down
+        // against the card's bottom edge and the header stays put at the top
+        margin: auto 0 0;
+        min-width: 0; // keeps <fieldset> from refusing to shrink in a flex/grid parent
+    }
+
+    &__legend {
+        // a <legend> is not a flow container in every engine; this keeps the
+        // heading + subtitle laid out like normal blocks inside it
+        display: block;
+        float: left;
+        width: 100%;
+        padding: 0;
+    }
+
+    // the step's question: second only to "Let's chat !", and big enough to
+    // read as the thing being asked rather than a label over the fields
+    &__title {
+        font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+        line-height: 1.15;
+        text-wrap: balance;
+        text-align: center;
+        margin: 0 0 1.5rem;
+        + .inquiry__sub { margin-top: -1rem; }
+        // focused programmatically on step change — no focus ring needed, the
+        // content moving is the feedback
+        &:focus { outline: none; }
+    }
+
+    &__sub {
+        margin: 0 0 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        opacity: 0.6;
+    }
+
+    &__group {
+        border: 0;
+        padding: 0;
+        margin: 0 0 1.75rem;
+        min-width: 0;
+
+        &:last-of-type { margin-bottom: 0; }
+
+        // centred over its pills, which are centred too; float + full width
+        // is what lets a <legend> take text-align like an ordinary block
+        > legend {
+            float: left;
+            width: 100%;
+            padding: 0;
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+    }
+
+    &__pills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; // the card is a centred column throughout
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    // no row gap: rows are spaced by each field's own bottom margin, so a row
+    // inside the grid and a full-width field below it sit the same distance apart
+    &__grid {
+        display: grid;
+        gap: 0 1.5rem;
+        grid-template-columns: 1fr;
+        @include media-breakpoint-up(md) {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    &__error {
+        display: block;
+        margin: 0.5rem 0 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: $danger;
+
+        // keeps a field's error tucked under it rather than a row-gap away
+        .field + & { margin-top: -0.75rem; }
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: clamp(1.5rem, 3.5vw, 2.75rem);
+    }
+
+    &__back {
+        order: 1; // under the primary button, whichever renders first
+        background: none;
+        border: 0;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: rgba($dark, 0.62);
+        cursor: pointer;
+        border-radius: 999px;
+        &:hover { color: $dark; }
+    }
+
+    &__next,
+    &__send {
+        @extend .btn;
+        // one full-width dark button, as the design has it
+        width: 100%;
+        background: $dark;
+        color: $white;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 1.05rem 2rem;
+        &:hover { background: lighten($dark, 12%); color: $white; }
+    }
+
+    // ------------------------------------------------------------ success
+    // The envelope sits dead centre and plays its little routine (letter in,
+    // flap shut, blink, fly off up-right); the thank-you then rises into the
+    // spot it vacated. The card's overflow:hidden is what makes the envelope
+    // vanish over the edge rather than across the page.
+    &__done {
+        flex: 1;
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 18rem;
+        text-align: center;
+    }
+
+    &__mail {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+    }
+
+    &__thanks {
+        animation: thanksIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 2.15s both;
+        .inquiry__heading:focus { outline: none; }
+    }
+
+    // a few soft puffs left behind at take-off
+    &__puff {
+        position: absolute;
+        left: calc(50% + var(--x));
+        top: calc(50% + var(--y));
+        width: var(--s);
+        height: var(--s);
+        margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+        border-radius: 50%;
+        background: rgba($dark, 0.12);
+        animation: puff 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.75s both;
+
+        &:nth-child(1) { --x: -3.5rem;  --y: 1.75rem; --s: 2.25rem; }
+        &:nth-child(2) { --x: -1.5rem;  --y: 2.75rem; --s: 1.6rem;  animation-delay: 1.82s; }
+        &:nth-child(3) { --x: -4.75rem; --y: 0;       --s: 1.25rem; animation-delay: 1.9s; }
+    }
+}
+
+.envelope {
+    width: clamp(6.5rem, 14vw, 8.5rem);
+    overflow: visible;
+    // pop in, then (listed later, so it wins once it starts) the flight
+    animation:
+        envPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+        envFly 0.8s cubic-bezier(0.5, 0, 0.75, 0) 1.65s forwards;
+
+    // sticker style, like the pills: brand yellow, inked outline
+    &__back,
+    &__front,
+    &__flap,
+    &__letter rect {
+        stroke: $dark;
+        stroke-width: 2.5;
+        stroke-linejoin: round;
+    }
+    &__back { fill: darken($primary, 12%); }
+    &__front,
+    &__flap { fill: $primary; }
+
+    &__letter {
+        rect { fill: $white; }
+        path { stroke: $grey-200; stroke-width: 2.5; stroke-linecap: round; }
+        animation: letterIn 0.5s cubic-bezier(0.65, 0, 0.35, 1) 0.35s both;
+    }
+
+    // Two flaps rather than one rotating: the open one has to sit behind the
+    // letter and the shut one in front of it, and SVG has no z-index. The
+    // open one folds down to the hinge, the shut one unfolds out of it.
+    &__flap {
+        transform-box: view-box;
+        transform-origin: 60px 32px;
+        &--open { animation: flapFold 0.16s ease-in 0.85s both; }
+        &--shut { animation: flapUnfold 0.2s ease-out 1.01s both; }
+    }
+
+    &__eyes {
+        circle { fill: $white; stroke: $dark; stroke-width: 2; }
+        transform-box: view-box;
+        transform-origin: 60px 76px;
+        animation: envBlink 0.22s ease-in-out 1.3s;
+    }
+    &__pupils {
+        circle { fill: $dark; stroke: none; }
+        // watch the letter go in, then glance where it's about to fly
+        animation: pupilsLook 1.5s ease-in-out both;
+    }
+}
+
+@keyframes envPop {
+    from { opacity: 0; transform: scale(0.6) translateY(1rem); }
+}
+
+@keyframes envFly {
+    0%   { transform: none; }
+    18%  { transform: translate(-0.4rem, 0.4rem) rotate(7deg) scale(0.95); }
+    100% { transform: translate(min(36rem, 62vw), -18rem) rotate(-26deg) scale(0.5); }
+}
+
+@keyframes letterIn {
+    from { transform: translateY(-6px); }
+    to   { transform: translateY(26px); }
+}
+
+@keyframes flapFold   { to   { transform: scaleY(0); } }
+@keyframes flapUnfold { from { transform: scaleY(0); } }
+
+@keyframes envBlink {
+    50% { transform: scaleY(0.1); }
+}
+
+@keyframes pupilsLook {
+    0%, 55% { transform: translate(0, -2px); }
+    70%     { transform: translate(0, 0); }
+    92%, 100% { transform: translate(2px, -2px); }
+}
+
+@keyframes puff {
+    from { opacity: 0; transform: scale(0.2); }
+    35%  { opacity: 1; }
+    to   { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes thanksIn {
+    from { opacity: 0; transform: translateY(1.25rem); }
+}
+
+// form ↔ thank-you swap
+.inquiry-swap-enter-active,
+.inquiry-swap-leave-active { transition: opacity 0.25s ease; }
+.inquiry-swap-enter-from,
+.inquiry-swap-leave-to { opacity: 0; }
+
+// ------------------------------------------------------------ pills / cards
+.pill {
+    cursor: pointer;
+
+    &__input {
+        // kept in the layout (not display:none) so it stays focusable and
+        // announced; the visible face is what gets styled
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    &__face {
+        display: inline-block;
+        padding: 0.8rem 1.4rem;
+        border: 2px solid rgba($dark, 0.15);
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+        // on a phone the desktop size fits one pill per row; this fits two,
+        // and stays above the 44px touch target
+        @include media-breakpoint-down(md) {
+            padding: 0.7rem 1.05rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    &:hover &__face { border-color: rgba($dark, 0.35); }
+
+    &__input:checked + &__face {
+        background: $primary;
+        border-color: $secondary;
+    }
+
+    &__input:focus-visible + &__face {
+        outline: 3px solid $secondary;
+        outline-offset: 2px;
+    }
+}
+
+.is-invalid .pill__face { border-color: rgba($danger, 0.55); }
+
+// ------------------------------------------------------------------ fields
+.field {
+    display: block;
+    margin-bottom: 1.25rem;
+
+    // the step's last field hands its spacing over to the actions below
+    .inquiry__step > &:last-child { margin-bottom: 0; }
+
+    &__label {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+
+        em {
+            font-style: normal;
+            font-weight: 500;
+            opacity: 0.6; // anything lower drops under 4.5:1 on white
+            margin-left: 0.25rem;
+        }
+    }
+
+    &__input {
+        width: 100%;
+        padding: 0.95rem 1.35rem;
+        border: 2px solid rgba($dark, 0.15);
+        border-radius: 999px;
+        background: $white;
+        font-size: 1rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+
+        // dark enough to read (≥4.5:1), light enough not to pass for an answer
+        &::placeholder { color: rgba($dark, 0.58); }
+
+        // deliberately not the browser default blue — the filled yellow field
+        // in the design is this, the one being typed into
+        &:focus {
+            outline: none;
+            background: $primary;
+            border-color: $secondary;
+        }
+
+        &[aria-invalid='true'] { border-color: rgba($danger, 0.6); }
+
+        &--area {
+            border-radius: 1.25rem;
+            resize: vertical;
+            min-height: 7rem;
+        }
+    }
+}
+
+// ------------------------------------------------------- step transitions
+.step-fwd-enter-active,
+.step-fwd-leave-active,
+.step-back-enter-active,
+.step-back-leave-active {
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.step-fwd-enter-from { opacity: 0; transform: translateX(28px); }
+.step-fwd-leave-to   { opacity: 0; transform: translateX(-28px); }
+.step-back-enter-from { opacity: 0; transform: translateX(-28px); }
+.step-back-leave-to   { opacity: 0; transform: translateX(28px); }
+
+@media (prefers-reduced-motion: reduce) {
+    .step-fwd-enter-active,
+    .step-fwd-leave-active,
+    .step-back-enter-active,
+    .step-back-leave-active {
+        transition: opacity 0.15s ease;
+    }
+    .step-fwd-enter-from,
+    .step-fwd-leave-to,
+    .step-back-enter-from,
+    .step-back-leave-to { transform: none; }
+
+    .inquiry { transition: none; }
+
+    // no flight: the envelope just sits, sealed, above the thank-you
+    .inquiry__done {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    .inquiry__mail { position: static; }
+    .inquiry__puff,
+    .envelope__flap--open,
+    .envelope__letter { display: none; }
+    .envelope,
+    .envelope *,
+    .inquiry__thanks { animation: none !important; }
+}
+
+// --------------------------------------------------------------- the strip
+.footer-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    text-align: center;
+
+    background: $dark;
+    color: $white;
+    border-radius: 999px;
+    border-radius: clamp(1.5rem, 4vw, 999px);
+    padding: clamp(1.5rem, 3vw, 1.75rem) clamp(1.5rem, 4vw, 3rem);
+    max-width: 1200px;
+    margin: 0 auto;
+
+    @include media-breakpoint-up(md) {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+    }
+
+    &__brand {
+        display: inline-flex;
+        align-items: center;
+        font-family: 'Ubuntu', sans-serif;
+        font-weight: 700;
+        font-size: 1.75rem;
+        line-height: 1;
+        color: $primary;
+        text-decoration: none;
+    }
+
+    // the 'o' of mello, as the brand mark
+    &__o {
+        width: 0.85em;
+        height: 0.85em;
+        margin-left: 0.05em;
+        border-radius: 50%;
+        background: $secondary;
+        box-shadow: inset 0 0 0 0.16em $primary;
+    }
+
+    &__block {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin: 0;
+    }
+
+    &__kicker {
+        font-size: 0.8rem;
+        font-weight: 700;
+        opacity: 0.7;
+        transform: rotate(-8deg);
+
+        em {
+            font-style: normal;
+            color: $secondary;
+            margin-left: 0.15rem;
+        }
+    }
+
+    &__mail {
+        color: $white;
+        font-weight: 700;
+        text-decoration: none;
+        &:hover { color: $primary; }
+    }
+
+    &__icons {
+        display: inline-flex;
+        gap: 0.5rem;
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            background: $white;
+            color: $dark;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+
+            &:hover { background: $secondary; }
+            &:focus-visible { outline: 3px solid $secondary; outline-offset: 2px; }
+        }
+    }
+}

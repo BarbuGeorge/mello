@@ -27,8 +27,22 @@ function handleClick(e, url) {
 const navRef = ref(null)
 const scrolled = ref(false)
 
+// On phones and tablets the nav is a bottom bar laid out entirely in CSS
+// (header.scss), so the scattered/parallax positioning below keeps off it.
+const DOCK_QUERY = '(max-width: 991.98px)'
+let isDock = false
+
+function clearInlinePositions() {
+  navRef.value?.querySelectorAll('.nav-item').forEach((item) => {
+    item.style.left = ''
+    item.style.top = ''
+    item.style.transform = ''
+  })
+}
+
 function applyScrolledPositions(isScrolled) {
   if (!navRef.value) return
+  if (isDock) return clearInlinePositions()
   const navItems = navRef.value.querySelectorAll('.nav-item')
   if (isScrolled) {
     const gap = 10
@@ -58,6 +72,11 @@ let scrollSmooths = []
 let raf = null
 
 function tick() {
+  if (isDock) {
+    raf = requestAnimationFrame(tick)
+    return
+  }
+
   current.x += (mouse.x - current.x) * 0.07
   current.y += (mouse.y - current.y) * 0.07
 
@@ -82,8 +101,19 @@ function tick() {
 }
 
 let cleanupScroll
+let cleanupDock
 
 onMounted(() => {
+  const dockQuery = window.matchMedia(DOCK_QUERY)
+  const onDockChange = () => {
+    isDock = dockQuery.matches
+    clearInlinePositions()
+    applyScrolledPositions(scrolled.value)
+  }
+  isDock = dockQuery.matches
+  dockQuery.addEventListener('change', onDockChange)
+  cleanupDock = () => dockQuery.removeEventListener('change', onDockChange)
+
   const handleScroll = () => {
     const isScrolled = window.scrollY > window.innerHeight * 0.3
     if (isScrolled !== scrolled.value) {
@@ -111,13 +141,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   cleanupScroll?.()
+  cleanupDock?.()
   cancelAnimationFrame(raf)
 })
 </script>
 
 <template>
   <header>
-    <nav ref="navRef">
+    <nav ref="navRef" aria-label="Main">
       <NuxtLink v-for="(item, i) in items" :key="i" :to="item.url"
         :target="item.url.startsWith('#') ? '_self' : item.target" @click="handleClick($event, item.url)"
         class="nav-item" :style="{ animationDelay: `${i * 0.13 + 0.9}s` }">

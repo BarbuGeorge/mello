@@ -3,6 +3,13 @@ body {
         height: calc(100% - 80px);
     }
     overflow: clip;
+
+    // clearance for the bottom nav bar (header.scss), so the end of the page
+    // can scroll out from under it
+    @include media-breakpoint-down(lg) {
+        // the bar's tallest (a label wrapped to two lines on a 320px phone)
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 .cms-section {
@@ -13,4 +20,19 @@ body {
             @extend .col;
         }
     }
+
+    // Cards pad themselves (cards.scss), which cancels the column gutter that
+    // would normally offset the row's negative margin, so on a phone they ran
+    // to the very edge of the screen. Drop the gutter, give the section a real
+    // margin instead.
+    @include media-breakpoint-down(md) {
+        padding-inline: 1.25rem;
+        .cms-row { --bs-gutter-x: 0; }
+    }
+
+    // A "grow" title starts at 1.5× its width, which is past the screen's
+    // edge on phones and tablets. Unclipped, that widened the whole page on
+    // touch devices and pushed fixed things (bottom nav, hero eyes)
+    // off-screen. `clip`, not `hidden`, so sticky cards and badges still stick.
+    overflow-x: clip;
 }

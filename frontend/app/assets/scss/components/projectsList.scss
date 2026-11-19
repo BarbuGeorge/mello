@@ -1,46 +1,58 @@
 .projects-slider {
     @extend .bg-dark;
     position: relative;
+    // full-bleed, edge to edge — no section padding to break the run of
+    // full-screen slides (a separate title band used to sit above them,
+    // splitting yellow -> black -> slide for no reason)
+    padding: 0;
 
+    // overlaid on the slider like a gallery caption, not a divider between
+    // sections — stays put while the track scrolls under it
     &__intro {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        margin-bottom: 2.5rem;
+        position: absolute;
+        top: clamp(1.5rem, 4vw, 3rem);
+        left: clamp(1.5rem, 4vw, 4rem);
+        z-index: 3;
+        text-align: left;
+        pointer-events: none;
+        // it sits near the left edge, so growing from center would push it
+        // past the edge of the viewport — grow from its own anchored corner
+        transform-origin: 0 0;
+
+        h2 {
+            margin: 0;
+            font-size: clamp(1.4rem, 2.4vw, 2rem);
+            // legible over whatever photo/color a slide happens to have
+            text-shadow: 0 2px 16px rgba(black, 0.5);
+        }
     }
 }
 
 .horizontal-wrapper {
+    position: relative;
     height: 100vh;
     overflow: hidden;
     display: flex;
     align-items: center;
+    // slides are sized off the wrapper's own width (100cqw), so with a page
+    // scrollbar they still fit the visible area exactly instead of 100vw
+    container-type: inline-size;
 }
 
+// each project is one full-screen slide; the track just slides them past
 .horizontal-track {
     display: flex;
-    gap: 2.5rem;
-    padding: 0 8vw;
     will-change: transform;
 }
 
 .slide-card {
     position: relative;
     flex: 0 0 auto;
-    width: min(80vw, 1300px);
-    height: 85vh;
-    border-radius: 24px;
+    width: 100vw;
+    width: 100cqw;
+    height: 100vh;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.05);
-    opacity: 0.55;
-    scale: 0.8;
-    transition: opacity 0.35s ease-in-out, scale 0.35s ease-in-out;
-
-    &.is-active {
-        opacity: 1;
-        scale: 1;
-    }
 
     &__img {
         position: absolute;
@@ -50,6 +62,16 @@
         object-fit: cover;
     }
 
+    // sits over the <img>, pixel-identical to it at rest — only visibly
+    // differs where the pointer has stamped a ripple (see useRippleImage.js)
+    &__ripple {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
     &__overlay {
         position: absolute;
         inset: 0;
@@ -57,11 +79,21 @@
         display: flex;
         align-items: flex-end;
         gap: 1.5rem;
-        background: rgba(20, 20, 20, 0.35);
-        backdrop-filter: blur(16px) saturate(1.4);
-        -webkit-backdrop-filter: blur(16px) saturate(1.4);
         opacity: 0;
         transition: opacity 0.3s ease-in-out;
+
+        // legibility scrim lives behind the caption only — a gradient fade,
+        // not a blur over the whole image, so the photo stays sharp everywhere
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10, 10, 10, 0.75) 0%, rgba(10, 10, 10, 0.35) 35%, transparent 65%);
+        }
+
+        > * {
+            position: relative;
+        }
     }
 
     &:hover &__overlay {
@@ -92,10 +124,261 @@
         white-space: nowrap;
         transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out, border-color 0.25s ease-in-out;
 
+        // a <button> now (it opens the detail dialog rather than navigating),
+        // so the browser's default button styling has to be undone
+        background: none;
+        cursor: pointer;
+        font-family: inherit;
+
         &:hover {
             background-color: $primary;
             border-color: $primary;
             color: $dark;
         }
+
+        &:focus-visible {
+            outline: 3px solid $primary;
+            outline-offset: 3px;
+        }
+    }
+}
+
+// page scroll is handed to the dialog while it's open
+html.is-modal-open,
+html.is-modal-open body {
+    overflow: hidden;
+}
+
+.project-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    // a full surface, not a card floating over a dimmed page — nothing of the
+    // slider shows through, so there is no backdrop to speak of
+    background: $white;
+    color: $dark;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: modalRise 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    &:focus { outline: none; }
+
+    &__inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: clamp(3.5rem, 8vw, 7rem) clamp(1.25rem, 5vw, 3rem) clamp(3rem, 8vw, 6rem);
+    }
+
+    &__close {
+        position: fixed;
+        top: clamp(1rem, 2.5vw, 2rem);
+        right: clamp(1rem, 2.5vw, 2rem);
+        z-index: 2;
+        width: 3rem;
+        height: 3rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 50%;
+        background: $dark;
+        color: $white;
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
+
+        &:hover { background: $primary; color: $dark; }
+        &:focus-visible { outline: 3px solid $primary; outline-offset: 3px; }
+    }
+
+    &__title {
+        margin: 0 0 clamp(2rem, 5vw, 3.5rem);
+        font-size: clamp(2.5rem, 7vw, 5rem);
+        line-height: 1;
+    }
+
+    // meta on the left, the short intro on the right — stacked on small screens
+    &__head {
+        display: grid;
+        gap: 1.5rem 3rem;
+        grid-template-columns: 1fr;
+        margin-bottom: clamp(2rem, 5vw, 3rem);
+
+        @include media-breakpoint-up(md) {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            align-items: start;
+        }
+
+        // grid items default to min-width:auto, so an unbroken string would
+        // refuse to shrink and blow the whole layout sideways
+        > * { min-width: 0; }
+    }
+
+    &__summary {
+        margin: 0;
+        font-size: clamp(1rem, 1.5vw, 1.15rem);
+        line-height: 1.65;
+        opacity: 0.75;
+        // pasted URLs and the like have no spaces to break at
+        overflow-wrap: anywhere;
+    }
+
+    &__img {
+        display: block;
+        width: 100%;
+        // project shots are all sorts of proportions (several are near-square
+        // logos); a fixed landscape frame keeps the hero from running the
+        // whole height of the screen
+        aspect-ratio: 16 / 9;
+        max-height: 62vh;
+        object-fit: cover;
+        object-position: center;
+        border-radius: clamp(0.75rem, 2vw, 1.5rem);
+        margin-bottom: clamp(2.5rem, 6vw, 4rem);
+    }
+
+    &__content {
+        // same reason as the summary: CMS copy can contain unbroken strings
+        overflow-wrap: anywhere;
+
+        // the dynamiczone renders page-style sections; inside the dialog they
+        // shouldn't keep the full-page container width or vertical rhythm
+        .cms-section {
+            padding: 0;
+            max-width: none;
+        }
+    }
+
+    &__empty {
+        opacity: 0.55;
+        margin: 0;
+    }
+}
+
+// other projects to jump to, at the foot of the dialog
+.more-projects {
+    margin-top: clamp(3.5rem, 9vw, 6rem);
+    padding-top: clamp(2rem, 5vw, 3rem);
+    border-top: 1px solid rgba($dark, 0.12);
+
+    &__title {
+        margin: 0 0 clamp(1.5rem, 4vw, 2.5rem);
+        font-size: clamp(1.75rem, 4.5vw, 3rem);
+    }
+
+    &__grid {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: clamp(1.25rem, 3vw, 2rem);
+        grid-template-columns: 1fr;
+
+        @include media-breakpoint-up(sm) {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        @include media-breakpoint-up(lg) {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    &__card {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        font-family: inherit;
+        color: inherit;
+
+        &:focus-visible {
+            outline: 3px solid $primary;
+            outline-offset: 4px;
+            border-radius: 0.5rem;
+        }
+
+        &:hover .more-projects__img { transform: scale(1.03); }
+    }
+
+    // clips the zoom; kept off the card itself so the focus ring isn't cut off
+    &__frame {
+        display: block;
+        overflow: hidden;
+        border-radius: clamp(0.5rem, 1.5vw, 1rem);
+        margin-bottom: 0.85rem;
+    }
+
+    &__img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    &__name {
+        display: block;
+        font-weight: 700;
+        font-size: 1.15rem;
+    }
+
+    &__meta {
+        display: block;
+        margin-top: 0.15rem;
+        font-size: 0.9rem;
+        opacity: 0.55;
+    }
+}
+
+// Category / Year / Live, sitting between the intro and the written content
+.project-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 2.5rem;
+    margin: 0 0 2rem;
+    padding: 1.25rem 0;
+    border-top: 1px solid rgba($dark, 0.12);
+    border-bottom: 1px solid rgba($dark, 0.12);
+
+    &__item {
+        min-width: 7rem;
+    }
+
+    dt {
+        margin-bottom: 0.3rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.45;
+    }
+
+    dd {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    &__link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: $dark;
+        text-decoration: none;
+        border-bottom: 2px solid $primary;
+
+        &:hover { border-bottom-color: $dark; }
+        &:focus-visible { outline: 3px solid $primary; outline-offset: 3px; }
+    }
+}
+
+@keyframes modalRise {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .project-modal {
+        animation-duration: 0.01ms;
     }
 }

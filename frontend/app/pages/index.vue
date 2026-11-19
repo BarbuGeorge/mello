@@ -21,6 +21,7 @@ onMounted(() => {
   const eyeTimers = new WeakMap()
   const heroEyes  = hero.querySelector('.hero-eyes')
   let heroVisible = true
+  let lastCut = 0
 
   const tick = () => {
     current.x += (mouse.x - current.x) * 0.06
@@ -36,7 +37,13 @@ onMounted(() => {
       const dy = cy - (r.top  + r.height / 2)
       const dist   = Math.sqrt(dx * dx + dy * dy) || 1
       const travel = Math.min(22, dist * 0.08)
-      p.style.transform = `translate(${(dx / dist) * travel}px, ${(dy / dist) * travel}px)`
+      // a spinning eye carries its pupil around with it: express the world-space
+      // look direction in the eye's rotated frame
+      const ang = -(p.parentElement.__angle || 0)
+      const ux = dx / dist, uy = dy / dist
+      const lx = ux * Math.cos(ang) - uy * Math.sin(ang)
+      const ly = ux * Math.sin(ang) + uy * Math.cos(ang)
+      p.style.transform = `translate(${lx * travel}px, ${ly * travel}px)`
     })
 
     // hero-eyes is fixed to the viewport so it must be hidden once the hero scrolls out of view
@@ -47,12 +54,26 @@ onMounted(() => {
       heroEyes.classList.toggle('is-out-of-view', !isVisible)
     }
 
+    // While an eye is held or flying, the container is raised above the hero text
+    // (z-index 100) — which would also put it above every section below. Clip it
+    // at the hero's bottom edge so, as you scroll, the eyes pass *under* the
+    // content that follows, the way they do at rest. Insets are huge and negative
+    // on the other sides so the eyes stay free to roam over the rest of the hero.
+    const cut = Math.max(0, Math.round((heroEyes.getBoundingClientRect().bottom - heroRect.bottom) * 2) / 2)
+    if (cut !== lastCut) {
+      lastCut = cut
+      heroEyes.style.clipPath = cut > 0 ? `inset(-9999px -9999px ${cut}px -9999px)` : ''
+    }
+
     raf = requestAnimationFrame(tick)
   }
 
   const onMouse = (e) => {
     mouse.x = e.clientX / window.innerWidth - 0.5
     mouse.y = e.clientY / window.innerHeight - 0.5
+    // hover-to-close is a mouse thing: a finger sliding over an eye would
+    // shut its lids with no hover-out to ever open them again
+    if (e.pointerType !== 'mouse') return
     eyes.forEach(eye => {
       if (!eye.classList.contains('is-open')) return
       if (eye.classList.contains('is-dragging')) return
@@ -72,107 +93,43 @@ onMounted(() => {
     })
   }
 
-  // Drag + bounce + roll-back for each eye
-  // FLOOR_Y = -50: translateY where eye's bottom edge touches the viewport bottom
-  // (hero-eyes has bottom:-50px → eye center is naturally at vh-15, floor center at vh-65 → delta = -50)
-  const EYE_CIRCUMFERENCE = Math.PI * 130
-  const FLOOR_Y = -50
-  let activeDrags = 0
-
-  eyes.forEach(eye => {
-    const offset = { x: 0, y: 0 }
-    let currentAnim = null
-
-    const cancelAnim = () => { if (currentAnim) { currentAnim.cancel(); currentAnim = null } }
-
-    const cleanup = () => {
-      cancelAnim()
-      eye.classList.remove('is-dragging')
-      eye.style.transform = ''
-      activeDrags--
-      if (activeDrags === 0) heroEyes.style.zIndex = ''
-      offset.x = 0; offset.y = 0
-      // Force eye open after returning home
+  // Drag / throw / bounce / roll-back: real-ish ball physics (useEyePhysics).
+  // Lids go back to their open state whenever an eye gets home, like before.
+  const eyePhysics = useEyePhysics()
+  // On phones/tablets the nav is a bar fixed along the bottom (the <nav> itself
+  // is only fixed in that layout); thrown eyes land on top of it, not under it.
+  const navBar = document.querySelector('header nav')
+  eyePhysics.start({
+    eyes,
+    container: heroEyes,
+    floorInset: () => (navBar && getComputedStyle(navBar).position === 'fixed' ? navBar.offsetHeight : 0),
+    // hovering closes an eye's lids; once it's picked up they open again, so a
+    // held / flying eye stays a visible white ball (closed lids are the same
+    // dark as the sections below the hero and it would vanish against them)
+    onGrab: (eye) => {
+      clearTimeout(eyeTimers.get(eye))
+      if (eye.classList.contains('is-closing')) {
+        eye.classList.remove('is-closing')
+        eye.classList.add('is-opening')
+        const t = setTimeout(() => eye.classList.remove('is-opening'), 500)
+        eyeTimers.set(eye, t)
+      }
+    },
+    onHome: (eye) => {
       clearTimeout(eyeTimers.get(eye))
       eye.classList.remove('is-closing', 'is-opening')
       eye.classList.add('is-opening')
       const t = setTimeout(() => eye.classList.remove('is-opening'), 500)
       eyeTimers.set(eye, t)
-    }
-
-    const release = (fromX, fromY) => {
-      if (Math.sqrt(fromX * fromX + fromY * fromY) < 5) { cleanup(); return }
-
-      const aboveFloor = fromY < FLOOR_Y
-      const floorX     = fromX
-      const rollDist   = Math.sqrt(floorX * floorX + FLOOR_Y * FLOOR_Y)
-      const rollAngle  = (rollDist / EYE_CIRCUMFERENCE) * 360
-      const rotDir     = fromX >= 0 ? -1 : 1
-
-      if (aboveFloor) {
-        const fallDist  = FLOOR_Y - fromY
-        const fallDur   = Math.min(480, Math.max(150, fallDist * 1.0))
-        const squishDur = 300
-        const rollDur   = Math.min(2000, Math.max(600, rollDist * 2.6))
-        const total     = fallDur + squishDur + rollDur
-        const fi = fallDur / total
-        const fb = (fallDur + 130) / total
-        const fs = (fallDur + squishDur) / total
-
-        currentAnim = eye.animate([
-          { offset: 0,  transform: `translate(${fromX}px,${fromY}px) scale(1)`,                              easing: 'cubic-bezier(0.55,0,1,0.45)' },
-          { offset: fi, transform: `translate(${floorX}px,${FLOOR_Y}px) scaleX(1.28) scaleY(0.65)`,         easing: 'cubic-bezier(0,0,0.2,1)' },
-          { offset: fb, transform: `translate(${floorX}px,${FLOOR_Y - 14}px) scaleX(0.88) scaleY(1.12)`,    easing: 'cubic-bezier(0,0,0.2,1)' },
-          { offset: fs, transform: `translate(${floorX}px,${FLOOR_Y}px) scale(1)`,                           easing: 'cubic-bezier(0.22,1,0.36,1)' },
-          { offset: 1,  transform: `translate(0px,0px) rotate(${rotDir * rollAngle}deg)` },
-        ], { duration: total, fill: 'forwards' })
-      } else {
-        const dist    = Math.sqrt(fromX * fromX + fromY * fromY)
-        const angle   = (dist / EYE_CIRCUMFERENCE) * 360
-        const rollDur = Math.min(2200, Math.max(700, dist * 2.8))
-        const total   = 220 + rollDur
-        const fs      = 220 / total
-
-        currentAnim = eye.animate([
-          { offset: 0,        transform: `translate(${fromX}px,${fromY}px) scale(1)`,                       easing: 'cubic-bezier(0,0,0.2,1)' },
-          { offset: 0.4 * fs, transform: `translate(${fromX}px,${fromY}px) scaleX(1.2) scaleY(0.75)`,      easing: 'cubic-bezier(0,0,0.2,1)' },
-          { offset: fs,       transform: `translate(${fromX}px,${fromY}px) scale(1)`,                       easing: 'cubic-bezier(0.22,1,0.36,1)' },
-          { offset: 1,        transform: `translate(0px,0px) rotate(${rotDir * angle}deg)` },
-        ], { duration: total, fill: 'forwards' })
-      }
-
-      currentAnim.onfinish = cleanup
-    }
-
-    eye.addEventListener('mousedown', (e) => {
-      e.preventDefault()
-      cancelAnim()
-
-      const startX = e.clientX - offset.x
-      const startY = e.clientY - offset.y
-
-      eye.classList.add('is-dragging')
-      activeDrags++
-      if (activeDrags === 1) heroEyes.style.zIndex = '100'
-
-      const onMove = (ev) => {
-        offset.x = ev.clientX - startX
-        offset.y = ev.clientY - startY
-        eye.style.transform = `translate(${offset.x}px, ${offset.y}px)`
-      }
-
-      const onUp = () => {
-        window.removeEventListener('mousemove', onMove)
-        window.removeEventListener('mouseup', onUp)
-        release(offset.x, offset.y)
-      }
-
-      window.addEventListener('mousemove', onMove)
-      window.addEventListener('mouseup', onUp)
-    })
+    },
   })
 
-  window.addEventListener('mousemove', onMouse, { passive: true })
+  // Kinetic hero text: gummy hover + grab-and-rearrange (useKineticType)
+  const kineticType = useKineticType()
+  kineticType.start()
+
+  // pointer, not mouse: on a phone the pupils follow your finger too
+  window.addEventListener('pointermove', onMouse, { passive: true })
   raf = requestAnimationFrame(tick)
 
   // Mark eyes as open after all animations complete (heroEyesIn + eyeLidOpen)
@@ -181,8 +138,10 @@ onMounted(() => {
   }, 2100)
 
   onUnmounted(() => {
-    window.removeEventListener('mousemove', onMouse)
+    window.removeEventListener('pointermove', onMouse)
     cancelAnimationFrame(raf)
+    eyePhysics.stop()
+    kineticType.stop()
   })
 })
 

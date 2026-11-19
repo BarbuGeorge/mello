@@ -26,6 +26,29 @@
                 animation: wordSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
                 will-change: transform;
             }
+            // letters are grabbable / gummy (useKineticType); selecting text fights it
+            user-select: none;
+            .char {
+                display: inline-block;
+                // relative so the JS-driven z-index wins when a moved letter
+                // overlaps an at-rest one; origin at the baseline so the
+                // gummy stretch grows upward instead of from the middle
+                position: relative;
+                transform-origin: 50% 100%;
+                will-change: transform;
+            }
+            // once the entrance is done: lifted letters may rise past the clip,
+            // and .word stops being its own stacking context (its identity
+            // transform is a no-op) so a letter moved into another word can
+            // actually sit above that word's letters
+            &.kinetic-live {
+                .word-wrap { overflow-y: visible; }
+                .word {
+                    animation: none;
+                    transform: none !important;
+                    will-change: auto;
+                }
+            }
         }
         h1 {
             font-size: clamp(3rem, 6dvw, 8rem);
@@ -46,6 +69,11 @@
 
             overflow: hidden;
             font-size: clamp(3rem, 5.5dvw, 7.5rem);
+            // the strip is one line tall (1.7em), so a phrase that wraps gets
+            // cut in half; on narrow phones scale it to fit on one line
+            @include media-breakpoint-down(md) {
+                font-size: clamp(2.25rem, 12.5vw, 3rem);
+            }
             mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
             animation: ulReveal 0.5s ease 1s both;
             li {
@@ -77,11 +105,21 @@
             z-index: 1;
             animation: heroEyesIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
 
+            // below desktop the bottom nav bar owns the screen's lower edge,
+            // so the eyes peek out over the bar instead (it sits in front)
+            @include media-breakpoint-down(lg) {
+                bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+            }
+
             &.is-out-of-view {
                 display: none;
             }
             .eye {
                 cursor: grab;
+                // a finger on an eye grabs it (useEyePhysics) instead of
+                // scrolling the page
+                touch-action: none;
+                -webkit-tap-highlight-color: transparent;
                 background: white;
                 width: 130px;
                 height: 130px;
@@ -194,6 +232,17 @@
                 box-shadow: 0 1rem 3rem rgba($dark, 0.15);
             }
         }
+
+        // three cards side by side left each one ~50px wide on a phone, one
+        // letter per line; stack them instead (the rise-in JS copes, since
+        // every card then shares the first one's left edge)
+        @include media-breakpoint-down(md) {
+            padding-inline: 1.25rem;
+            .cms-row {
+                flex-direction: column;
+                gap: 1.25rem;
+            }
+        }
     }
     .section-steps {
         @extend .bg-dark;
@@ -201,27 +250,135 @@
         @extend .mw-100;
         padding-right: 4rem;
         padding-left: 7rem;
+        position: relative;
+        --steps-progress: 0;
+
+        // the rail lives on the right, so give the content a matching gutter
+        // (the left stays clear for the floating nav pills)
+        @include media-breakpoint-up(lg) {
+            padding-right: 8rem;
+        }
+        // no side rail and no side nav below desktop (the nav is a bottom
+        // bar), so nothing to clear
+        @include media-breakpoint-down(lg) {
+            padding-inline: clamp(1.25rem, 5vw, 3rem);
+        }
+
         > h2 {
-            @extend .mb-6;
             color: $white;
             text-align: center;
+            // a clear break between the section's title and its first step
+            margin-bottom: clamp(3.5rem, 8vw, 7rem);
         }
+
+        // vertical progress line on the right edge + a small sticky eye that
+        // rides it and blinks whenever a new step takes over
+        .steps-rail {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: none;
+            @include media-breakpoint-up(lg) {
+                display: block;
+            }
+
+            &__line {
+                position: absolute;
+                top: 10rem;
+                bottom: 6rem;
+                right: 4.35rem;
+                width: 3px;
+                border-radius: 3px;
+                background: rgba($white, 0.15);
+                overflow: hidden;
+            }
+            &__fill {
+                position: absolute;
+                inset: 0;
+                background: $primary;
+                transform-origin: top;
+                transform: scaleY(var(--steps-progress));
+            }
+            &__spacer {
+                position: absolute;
+                top: 10rem;
+                bottom: 6rem;
+                right: 0;
+                width: 100%;
+            }
+        }
+
+        .steps-eye {
+            position: sticky;
+            top: 42%;
+            margin-left: auto;
+            margin-right: 3.1rem;
+            width: 44px;
+            height: 44px;
+            background: white;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba($dark, 0.35);
+
+            &::before,
+            &::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: 56%;
+                background: $dark;
+                z-index: 2;
+                transform: scaleY(0);
+            }
+            &::before { top: 0; transform-origin: top center; }
+            &::after  { bottom: 0; transform-origin: bottom center; }
+            &.is-blink {
+                animation: eyePop 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+                &::before,
+                &::after { animation: stepsBlink 0.3s ease-in-out; }
+            }
+            .pupil {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 34%;
+                height: 34%;
+                margin: -17% 0 0 -17%;
+                background: $primary;
+                border-radius: 50%;
+                transition: translate 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+        }
+
         .cms-row {
             display: flex;
             flex-direction: column;
         }
         .cms-column {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            column-gap: 2rem;
-            min-height: 100svh;
+            // Plain block, badge floated left: the badge is sticky within the
+            // whole column (its containing block), so it stays pinned for the
+            // column's full height, while the texts simply stack under each
+            // other and take no extra room from it. (A grid row for the badge
+            // stretched the title row and pushed the texts a screen apart.)
+            display: flow-root;
+            min-height: 40svh;
+            // .col's `flex: 1 0 0%` sized each step to its 40svh floor rather
+            // than its content; on a phone the text is taller than that, so it
+            // overflowed into the next step and the two overlapped
+            flex: 0 0 auto;
+
+            // badge width + gap; the texts hang to the right of it
+            --steps-indent: 5.5rem;
+            @include media-breakpoint-down(md) {
+                --steps-indent: 3.75rem;
+            }
 
             h3 {
-                grid-column: 1;
-                grid-row: 1 / -1;
-                align-self: start;
+                float: left;
                 position: sticky;
                 top: 45%;
+                margin: 0 2rem 0 0;
 
                 width: 3.5rem;
                 height: 3.5rem;
@@ -232,14 +389,33 @@
                 color: $grey-200;
                 font-size: $h4-font-size;
                 transition: color 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease;
+
+                @include media-breakpoint-down(md) {
+                    width: 2.75rem;
+                    height: 2.75rem;
+                    margin-right: 1rem;
+                }
             }
+
+            // three tiers: step name, its one-line promise, then the detail
             h4 {
-                grid-column: 2;
+                margin: 0 0 0.5rem var(--steps-indent);
                 color: $white;
+                font-size: clamp(1.5rem, 2.6vw, 2.25rem);
+                line-height: 1.15;
             }
             p {
-                grid-column: 2;
+                margin: 0 0 0 var(--steps-indent);
+                max-width: 62ch;
                 color: $grey-200;
+                font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+                line-height: 1.6;
+            }
+            h4 + p {
+                color: $primary;
+                font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+                line-height: 1.4;
+                margin-bottom: 0.875rem;
             }
 
             &.is-active h3 {

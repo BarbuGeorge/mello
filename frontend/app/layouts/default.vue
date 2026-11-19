@@ -1,7 +1,6 @@
 <template>
-  <ClientOnly><Preloader /></ClientOnly>
-  <ClientOnly><AppCursor /></ClientOnly>
-  <AppRail />
+  <AppCursor />
+  <AppHeader />
 
   <main>
     <slot />

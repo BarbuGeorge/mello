@@ -14,8 +14,6 @@ const titleClassName = computed(() => TITLE_EFFECT_CLASS[props.section.titleEffe
 
 const sectionRef = ref(null)
 let onScroll = null
-let onStepsScroll = null
-let onStepsMouse = null
 let stepsObserver = null
 
 onMounted(() => {
@@ -66,62 +64,21 @@ function setupSteps() {
   const steps = Array.from(section.querySelectorAll('.cms-row > .cms-column'))
   if (!steps.length) return
 
-  const eye = section.querySelector('.steps-eye')
-  const pupil = eye?.querySelector('.pupil')
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
   // The step number is pinned via CSS (position: sticky) so it naturally hands off from one
-  // step to the next as you scroll. This tracks which step is currently at that pinned spot
-  // so its number gets the highlighted badge style — and the mascot eye (also sticky, riding
-  // the right rail) blinks whenever a new step takes over.
+  // step to the next as you scroll. This just tracks which step is currently at that pinned
+  // spot so its number can get the highlighted badge style — a thin detection band near the
+  // sticky offset, rather than anything scroll-position-math-based.
   stepsObserver = new IntersectionObserver(
     (entries) => {
-      entries.forEach(entry => {
-        entry.target.classList.toggle('is-active', entry.isIntersecting)
-        if (entry.isIntersecting && eye && !reduced) {
-          eye.classList.remove('is-blink')
-          void eye.offsetWidth // restart the blink animation
-          eye.classList.add('is-blink')
-        }
-      })
+      entries.forEach(entry => entry.target.classList.toggle('is-active', entry.isIntersecting))
     },
     { rootMargin: '-40% 0px -55% 0px', threshold: 0 }
   )
   steps.forEach(step => stepsObserver.observe(step))
-
-  // lime progress line; until a pointer shows up (touch), the pupil glances left
-  // toward the content, guided by scroll progress
-  let hasPointer = false
-  const updateProgress = () => {
-    const rect = section.getBoundingClientRect()
-    const total = Math.max(1, rect.height - window.innerHeight * 0.58)
-    const p = Math.min(1, Math.max(0, (window.innerHeight * 0.42 - rect.top) / total))
-    section.style.setProperty('--steps-progress', p.toFixed(4))
-    if (pupil && !hasPointer) pupil.style.translate = `-4px ${(p * 10 - 5).toFixed(1)}px`
-  }
-  updateProgress()
-  onStepsScroll = updateProgress
-  useNuxtApp().$lenis?.on('scroll', onStepsScroll)
-
-  if (eye && pupil && !reduced) {
-    onStepsMouse = (e) => {
-      const r = eye.getBoundingClientRect()
-      if (r.bottom < 0 || r.top > window.innerHeight) return
-      hasPointer = true
-      const dx = e.clientX - (r.left + r.width / 2)
-      const dy = e.clientY - (r.top + r.height / 2)
-      const dist = Math.hypot(dx, dy) || 1
-      const travel = Math.min(r.width * 0.17, dist * 0.1)
-      pupil.style.translate = `${(dx / dist) * travel}px ${(dy / dist) * travel}px`
-    }
-    window.addEventListener('pointermove', onStepsMouse, { passive: true })
-  }
 }
 
 onUnmounted(() => {
   if (onScroll) useNuxtApp().$lenis?.off('scroll', onScroll)
-  if (onStepsScroll) useNuxtApp().$lenis?.off('scroll', onStepsScroll)
-  if (onStepsMouse) window.removeEventListener('pointermove', onStepsMouse)
   stepsObserver?.disconnect()
 })
 </script>
@@ -147,15 +104,6 @@ onUnmounted(() => {
       :key="`ab-${i}`"
       :block="block"
     />
-    <div v-if="section.className?.includes('section-steps')" class="steps-rail" aria-hidden="true">
-      <div class="steps-rail__line"><div class="steps-rail__fill"></div></div>
-      <div class="steps-rail__spacer">
-        <div class="steps-eye"><div class="pupil"></div></div>
-      </div>
-    </div>
-    <ClientOnly v-if="section.className?.includes('section-hero')">
-      <HeroGL />
-    </ClientOnly>
     <div v-if="section.className?.includes('section-hero')" class="hero-eyes">
       <div class="eye eye1"><div class="pupil"></div></div>
       <div class="eye eye2"><div class="pupil"></div></div>

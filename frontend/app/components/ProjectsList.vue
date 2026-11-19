@@ -37,14 +37,6 @@ function projectHref(project) {
   return project.URL.startsWith('http') ? project.URL : 'https://' + project.URL
 }
 
-// the whole card is clickable (the cursor's "View" state promises it);
-// the inner link stays for keyboard and screen-reader users
-function openProject(project, event) {
-  const href = projectHref(project)
-  if (!href || event.target.closest('a')) return
-  window.open(href, '_blank', 'noopener')
-}
-
 const imageUrls = projects.map(p => p.FeaturedImage ? imgUrl(p.FeaturedImage.url) : null)
 
 const wrapperRef = ref(null)
@@ -114,16 +106,14 @@ onMounted(async () => {
 
     <div class="horizontal-wrapper" ref="wrapperRef">
       <div class="horizontal-track" ref="trackRef">
-        <div v-for="(project, i) in projects" :key="i" class="slide-card" :ref="el => (cardRefs[i] = el)"
-          :data-cursor="project.URL ? 'view' : null" :data-cursor-label="project.URL ? 'View ↗' : null"
-          @click="openProject(project, $event)">
+        <div v-for="(project, i) in projects" :key="i" class="slide-card" :ref="el => (cardRefs[i] = el)">
           <img v-if="imageUrls[i]" :src="imageUrls[i]" :alt="project.FeaturedImage?.alternativeText || project.Name"
             class="slide-card__img" loading="lazy" />
           <div class="slide-card__overlay">
             <span class="slide-card__index">{{ String(i + 1).padStart(2, '0') }}</span>
             <h3 class="slide-card__name">{{ project.Name }}</h3>
             <a v-if="project.URL" :href="projectHref(project)" target="_blank" rel="noopener noreferrer"
-              class="slide-card__link">View <span>&#8599;</span></a>
+              class="slide-card__link">View project</a>
           </div>
         </div>
       </div>

@@ -1,75 +1,23 @@
-// Signature cursor: a blend-mode ring that trails the pointer plus a small
-// precise dot. Grows on interactive elements; becomes a filled "View" badge on
-// project cards. Precise pointers only — touch/keyboard keep native behavior.
-@media (pointer: fine) {
-    html, body, a, button, [role="button"], [data-cursor] { cursor: none; }
-}
-
-.cursor,
-.cursor-dot {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    opacity: 0;
-    will-change: transform;
-    margin-left: 0;
-    margin-top: 0;
-    @media (pointer: coarse) { display: none; }
-    &.is-active { opacity: 1; }
+html, body, *, *::before, *::after {
+  cursor: none !important;
 }
 
 .cursor {
-    z-index: 99998;
-    width: 42px;
-    height: 42px;
-    margin: -21px 0 0 -21px;
-    border-radius: 50%;
-    border: 1.5px solid #fff;
-    mix-blend-mode: difference;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition:
-        width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-        height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-        margin 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-        background-color 0.3s ease,
-        border-color 0.3s ease,
-        opacity 0.25s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  background: #FFFCFB;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  mix-blend-mode: exclusion;
+  transition: width 0.22s ease, height 0.22s ease;
+  will-change: transform;
 
-    &__label {
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-        font-size: 0;
-        color: #141414;
-        white-space: nowrap;
-        transition: font-size 0.01s linear 0.08s, opacity 0.2s ease 0.08s;
-        opacity: 0;
-    }
-
-    &.is-hover {
-        width: 66px; height: 66px; margin: -33px 0 0 -33px;
-    }
-
-    // "View" badge on project cards — leaves blend mode, solid yellow
-    &.is-view {
-        width: 92px; height: 92px; margin: -46px 0 0 -46px;
-        mix-blend-mode: normal;
-        background: $primary;
-        border-color: $primary;
-        .cursor__label { opacity: 1; font-size: 0.82rem; }
-    }
-
-    &.is-down { transform: scale(0.9); }
-}
-
-.cursor-dot {
-    z-index: 99999;
-    width: 6px;
-    height: 6px;
-    margin: -3px 0 0 -3px;
-    border-radius: 50%;
-    background: #fff;
-    mix-blend-mode: difference;
+  &.is-hover {
+    width: 56px;
+    height: 56px;
+  }
 }
